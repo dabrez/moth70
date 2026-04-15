@@ -1,0 +1,56 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model BugReport {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title       String
+  description String
+  steps       String?
+  expected    String?
+  actual      String?
+  severity    String  @default("medium")
+  status      String  @default("open")
+
+  websiteUrl String
+  pageTitle  String?
+  screenshot String?
+
+  browser         String
+  browserVersion  String
+  os              String
+  osVersion       String?
+  deviceType      String
+
+  screenWidth      Int
+  screenHeight     Int
+  viewportWidth    Int
+  viewportHeight   Int
+  devicePixelRatio Float   @default(1)
+  colorDepth       Int?
+
+  userAgent     String
+  language      String?
+  timezone      String?
+  cookieEnabled Boolean @default(true)
+  touchEnabled  Boolean @default(false)
+  online        Boolean @default(true)
+
+  bugTimestamp DateTime?
+
+  reporterName  String?
+  reporterEmail String?
+
+  @@index([status])
+  @@index([severity])
+  @@index([websiteUrl])
+  @@index([createdAt])
+}
