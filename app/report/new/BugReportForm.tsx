@@ -22,6 +22,25 @@ interface EnvInfo {
   touchEnabled: boolean;
   online: boolean;
   userAgent: string;
+  buildVersion: string;
+  referrer: string;
+  hardwareConcurrency: number | null;
+  deviceMemory: number | null;
+  connectionType: string;
+  connectionDownlink: number | null;
+}
+
+function detectBuildVersion(): string {
+  try {
+    const meta = document.querySelector('meta[name="build-version"]');
+    if (meta?.getAttribute('content')) return meta.getAttribute('content')!;
+    const w = window as unknown as Record<string, unknown>;
+    if (w.__BUILD__) return String(w.__BUILD__);
+    if (w.__COMMIT_SHA__) return String(w.__COMMIT_SHA__);
+  } catch {
+    // ignore
+  }
+  return '';
 }
 
 function detectEnv(overrides: Record<string, string> = {}): EnvInfo {
@@ -63,6 +82,9 @@ function detectEnv(overrides: Record<string, string> = {}): EnvInfo {
     os = 'ChromeOS';
   }
 
+  const conn = (navigator as unknown as { connection?: { effectiveType?: string; downlink?: number } }).connection ?? {};
+  const nav = navigator as unknown as { deviceMemory?: number };
+
   return {
     browser, browserVersion, os, osVersion, deviceType,
     screenWidth: overrides.sw ? parseInt(overrides.sw) : screen.width,
@@ -77,6 +99,12 @@ function detectEnv(overrides: Record<string, string> = {}): EnvInfo {
     touchEnabled: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
     online: navigator.onLine,
     userAgent: ua,
+    buildVersion: overrides.build || detectBuildVersion(),
+    referrer: document.referrer || '',
+    hardwareConcurrency: overrides.hc ? parseInt(overrides.hc) : navigator.hardwareConcurrency ?? null,
+    deviceMemory: overrides.dm ? parseFloat(overrides.dm) : nav.deviceMemory ?? null,
+    connectionType: overrides.ct || conn.effectiveType || '',
+    connectionDownlink: overrides.cd ? parseFloat(overrides.cd) : conn.downlink ?? null,
   };
 }
 
@@ -111,7 +139,7 @@ export function BugReportForm() {
     if (url) setForm((f) => ({ ...f, websiteUrl: url }));
 
     const overrides: Record<string, string> = {};
-    ['sw', 'sh', 'vw', 'vh', 'dpr', 'lang', 'tz'].forEach((k) => {
+    ['sw', 'sh', 'vw', 'vh', 'dpr', 'lang', 'tz', 'build', 'hc', 'dm', 'ct', 'cd'].forEach((k) => {
       const v = searchParams.get(k);
       if (v) overrides[k] = v;
     });
@@ -416,6 +444,11 @@ export function BugReportForm() {
               { label: 'Cookies', value: env.cookieEnabled ? 'Enabled' : 'Disabled' },
               { label: 'Touch', value: env.touchEnabled ? 'Yes' : 'No' },
               { label: 'Online', value: env.online ? 'Yes' : 'No' },
+              { label: 'Build version', value: env.buildVersion || '—' },
+              { label: 'CPU cores', value: env.hardwareConcurrency ? String(env.hardwareConcurrency) : '—' },
+              { label: 'Device memory', value: env.deviceMemory ? `${env.deviceMemory} GB` : '—' },
+              { label: 'Connection', value: env.connectionType ? `${env.connectionType}${env.connectionDownlink ? ` (${env.connectionDownlink}Mbps)` : ''}` : '—' },
+              { label: 'Referrer', value: env.referrer ? new URL(env.referrer, location.href).hostname : '—' },
             ].map((item) => (
               <div key={item.label} className="bg-slate-50 rounded-lg p-2.5">
                 <div className="text-xs text-slate-400 mb-0.5">{item.label}</div>

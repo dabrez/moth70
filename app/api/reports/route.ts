@@ -7,6 +7,32 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+const JSON_BLOB_CAP_BYTES = 20_000;
+const SESSION_REPLAY_CAP_BYTES = 3_000_000;
+
+// Caps a JSON array (parsed from client input) to a byte budget by dropping oldest entries.
+function capJsonArray(value: unknown, capBytes: number): string | null {
+  if (!value) return null;
+  let arr: unknown[];
+  if (typeof value === 'string') {
+    try {
+      const parsed = JSON.parse(value);
+      if (!Array.isArray(parsed)) return null;
+      arr = parsed;
+    } catch {
+      return null;
+    }
+  } else if (Array.isArray(value)) {
+    arr = value;
+  } else {
+    return null;
+  }
+  while (arr.length > 0 && Buffer.byteLength(JSON.stringify(arr), 'utf8') > capBytes) {
+    arr = arr.slice(1);
+  }
+  return arr.length > 0 ? JSON.stringify(arr) : null;
+}
+
 export async function OPTIONS() {
   return new NextResponse(null, { status: 204, headers: CORS_HEADERS });
 }
@@ -85,6 +111,10 @@ export async function POST(request: NextRequest) {
     devicePixelRatio, colorDepth, userAgent, language, timezone,
     cookieEnabled, touchEnabled, online, bugTimestamp,
     reporterName, reporterEmail,
+    buildVersion, referrer, hardwareConcurrency, deviceMemory,
+    connectionType, connectionDownlink,
+    consoleErrors, jsExceptions, networkFailures,
+    sessionReplay,
   } = body;
 
   if (!title || typeof title !== 'string' || title.trim().length === 0) {
@@ -95,6 +125,13 @@ export async function POST(request: NextRequest) {
   }
   if (!websiteUrl || typeof websiteUrl !== 'string') {
     return NextResponse.json({ error: 'websiteUrl is required' }, { status: 400, headers: CORS_HEADERS });
+  }
+
+  let sessionReplayValue: string | null = sessionReplay ? String(sessionReplay) : null;
+  let sessionReplayTruncated = false;
+  if (sessionReplayValue && Buffer.byteLength(sessionReplayValue, 'utf8') > SESSION_REPLAY_CAP_BYTES) {
+    sessionReplayValue = sessionReplayValue.slice(0, SESSION_REPLAY_CAP_BYTES);
+    sessionReplayTruncated = true;
   }
 
   const report = await prisma.bugReport.create({
@@ -128,6 +165,17 @@ export async function POST(request: NextRequest) {
       bugTimestamp: bugTimestamp ? new Date(String(bugTimestamp)) : null,
       reporterName: reporterName ? String(reporterName).slice(0, 200) : null,
       reporterEmail: reporterEmail ? String(reporterEmail).slice(0, 200) : null,
+      buildVersion: buildVersion ? String(buildVersion).slice(0, 200) : null,
+      referrer: referrer ? String(referrer).slice(0, 2000) : null,
+      hardwareConcurrency: hardwareConcurrency ? parseInt(String(hardwareConcurrency)) || null : null,
+      deviceMemory: deviceMemory ? parseFloat(String(deviceMemory)) || null : null,
+      connectionType: connectionType ? String(connectionType).slice(0, 50) : null,
+      connectionDownlink: connectionDownlink ? parseFloat(String(connectionDownlink)) || null : null,
+      consoleErrors: capJsonArray(consoleErrors, JSON_BLOB_CAP_BYTES),
+      jsExceptions: capJsonArray(jsExceptions, JSON_BLOB_CAP_BYTES),
+      networkFailures: capJsonArray(networkFailures, JSON_BLOB_CAP_BYTES),
+      sessionReplay: sessionReplayValue,
+      sessionReplayTruncated,
     },
   });
 

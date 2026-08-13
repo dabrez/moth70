@@ -4,6 +4,20 @@ import { prisma } from '@/lib/prisma';
 import { SEVERITY_CONFIG, STATUS_CONFIG, formatDate, formatRelativeDate, getDomain } from '@/lib/utils';
 import { CopyLinkButton } from './CopyLinkButton';
 import { StatusUpdater } from './StatusUpdater';
+import { SessionReplayPlayer } from './SessionReplayPlayer';
+
+type DiagnosticEntry = { type: string; message: string; timestamp: number; stack?: string | null; source?: string | null };
+type NetworkFailureEntry = { url: string; method: string; statusCode: number | null; error?: string; timestamp: number };
+
+function parseJsonArray<T>(value: string | null): T[] {
+  if (!value) return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -22,6 +36,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
 
   const severity = SEVERITY_CONFIG[report.severity as keyof typeof SEVERITY_CONFIG] ?? SEVERITY_CONFIG.medium;
   const status = STATUS_CONFIG[report.status as keyof typeof STATUS_CONFIG] ?? STATUS_CONFIG.open;
+
+  const consoleErrors = parseJsonArray<DiagnosticEntry>(report.consoleErrors);
+  const jsExceptions = parseJsonArray<DiagnosticEntry>(report.jsExceptions);
+  const networkFailures = parseJsonArray<NetworkFailureEntry>(report.networkFailures);
+  const hasDiagnostics = consoleErrors.length > 0 || jsExceptions.length > 0 || networkFailures.length > 0;
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -75,6 +94,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           </div>
         )}
 
+        {/* Session Replay */}
+        {report.sessionReplay && (
+          <SessionReplayPlayer data={report.sessionReplay} truncated={report.sessionReplayTruncated} />
+        )}
+
         {/* Description */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
           <div>
@@ -126,6 +150,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
                 value: report.bugTimestamp ? new Date(report.bugTimestamp).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '—',
                 sub: report.bugTimestamp ? new Date(report.bugTimestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : undefined,
               },
+              { icon: '🏷️', label: 'Build version', value: report.buildVersion || '—' },
+              { icon: '🧠', label: 'CPU cores', value: report.hardwareConcurrency ? String(report.hardwareConcurrency) : '—' },
+              { icon: '💾', label: 'Device memory', value: report.deviceMemory ? `${report.deviceMemory} GB` : '—' },
+              { icon: '📶', label: 'Connection', value: report.connectionType ? `${report.connectionType}${report.connectionDownlink ? ` (${report.connectionDownlink}Mbps)` : ''}` : '—' },
+              { icon: '↩️', label: 'Referrer', value: report.referrer ? (() => { try { return new URL(report.referrer!).hostname; } catch { return report.referrer!; } })() : '—' },
             ].map((item) => (
               <div key={item.label} className="bg-slate-50 rounded-xl p-3">
                 <div className="flex items-center gap-1.5 mb-1">
@@ -142,6 +171,48 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
             <code className="text-xs text-slate-600 break-all font-mono leading-relaxed">{report.userAgent}</code>
           </div>
         </div>
+
+        {/* Console & Network */}
+        {hasDiagnostics && (
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-5">
+            <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Console & Network</h2>
+            {(jsExceptions.length > 0 || consoleErrors.length > 0) && (
+              <div>
+                <h3 className="text-xs font-semibold text-rose-600 uppercase tracking-wider mb-2">JS Errors & Console</h3>
+                <div className="space-y-1.5 max-h-72 overflow-y-auto">
+                  {[...jsExceptions, ...consoleErrors]
+                    .sort((a, b) => a.timestamp - b.timestamp)
+                    .map((entry, i) => (
+                      <div key={i} className={`rounded-lg p-2.5 text-xs font-mono ${entry.type === 'warn' ? 'bg-amber-50 text-amber-800' : 'bg-rose-50 text-rose-800'}`}>
+                        <div className="flex items-center gap-2 mb-0.5 opacity-70">
+                          <span className="uppercase font-sans font-semibold">{entry.type}</span>
+                          <span>{new Date(entry.timestamp).toLocaleTimeString()}</span>
+                          {entry.source && <span className="truncate">{entry.source}</span>}
+                        </div>
+                        <div className="break-all whitespace-pre-wrap">{entry.message}</div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+            {networkFailures.length > 0 && (
+              <div>
+                <h3 className="text-xs font-semibold text-orange-600 uppercase tracking-wider mb-2">Failed Requests</h3>
+                <div className="space-y-1.5 max-h-72 overflow-y-auto">
+                  {networkFailures
+                    .sort((a, b) => a.timestamp - b.timestamp)
+                    .map((entry, i) => (
+                      <div key={i} className="bg-orange-50 text-orange-800 rounded-lg p-2.5 text-xs font-mono flex items-center gap-2">
+                        <span className="font-sans font-semibold shrink-0">{entry.statusCode ?? entry.error ?? 'ERR'}</span>
+                        <span className="font-sans opacity-70 shrink-0">{entry.method}</span>
+                        <span className="truncate">{entry.url}</span>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Status */}
         <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">

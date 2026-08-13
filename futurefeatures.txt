@@ -1,0 +1,55 @@
+Here's Moth70 as a product, the whole stack:
+
+**1. CORE CAPTURE - The Extension**
+- One-click bug capture from anywhere on the web
+- Auto-records: screen recording (last 30 sec), console logs, network logs, browser version, OS, viewport, repro steps with click-path
+- One-click redact for PII before submitting
+- Auto-generates a clean bug report: Title, Steps to Repro, Expected vs Actual, Evidence bundle
+- Works on any website, any app
+
+**2. THE MOTH SYSTEM - Gamification**
+- Every verified bug = 1 Moth
+- Moth rarity based on bug severity / obscurity:
+  - Common Moth (white): simple UI bug
+  - Rare Moth (blue): race condition, auth edge
+  - Epic Moth (purple): perf regression, data loss
+  - Legendary Moth (gold): 0-day-ish, critical infra
+- Duplicate bugs merge, first reporter keeps moth, verifiers get smaller moth
+- Collection page - your moths displayed like Pokemon cards, with the bug attached
+- Trading / Flexing - link your collection on X, LinkedIn, GitHub profile
+
+**3. VERIFICATION LAYER - The Pedant Network**
+- Other users verify your bug on their machine: "Can repro / Can't repro"
+- 3x verified = Moth evolves, becomes more valuable
+- Top collectors (100+ moths) get "Expert Verifier" status, their verify counts 3x
+- Disputes resolved by senior collectors, not by staff
+- This is what creates the training data - multiple humans agreeing on a real bug
+
+**4. FIX LINKING - The Dataset**
+- Auto-links bug report to the eventual fix PR / commit when it lands
+- Reporter gets bonus: "Fix-linked Moth" - rarest type
+- Creates perfect bug->fix trajectory: broken state, repro, logs, fix
+- This is the $100M dataset - 500k organic bug->fix pairs no one else has
+
+**5. DISTRIBUTION / VIRALITY**
+- Bug report auto-posts as beautiful GitHub issue / Linear issue / Slack message
+- Your moth collection is your resume - companies can see you have 400 rare moths
+- Public leaderboard: Top 100 collectors, most rare moths this week
+- Company pages: "Most bugs found in Vercel" leaderboard - turns QA into esports
+
+**6. ENTERPRISE - How they make $5M**
+- Moth70 Score API: Give us a GitHub repo, we score all open issues by quality / verifiability
+- Maintainer dashboard: Top 5 real bugs, auto-collapsed low-signal issues
+- Private Moth Program: Vercel, Linear, etc pay for private moth collections - their own users hunting bugs for their product
+- Auto-triage bot for GitHub: Labels, sorts, asks for missing info automatically
+
+**7. ANTI-SPAM / QUALITY**
+- Reporter reputation - low quality = your reports go to bottom
+- AI pre-filter checks for duplicates before human sees it
+- 10 employees don't triage anything - the 10k power users do, because they want rarer moths
+
+It's 50% devtools, 50% Pokemon, 100% built for people who are annoyed by bugs and want to be right about them.
+
+That's it. No AI writing assistant. No fancy LLM wrapper. Just: make reporting bugs fun, and let pedants be pedants.
+
+And somehow that becomes the most valuable QA dataset on earth.

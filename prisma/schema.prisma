@@ -49,6 +49,20 @@ model BugReport {
   reporterName  String?
   reporterEmail String?
 
+  buildVersion        String?
+  referrer            String?
+  hardwareConcurrency Int?
+  deviceMemory        Float?
+  connectionType      String?
+  connectionDownlink  Float?
+
+  consoleErrors   String?
+  jsExceptions    String?
+  networkFailures String?
+
+  sessionReplay          String?
+  sessionReplayTruncated Boolean @default(false)
+
   @@index([status])
   @@index([severity])
   @@index([websiteUrl])

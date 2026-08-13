@@ -24,7 +24,7 @@ export default async function Home() {
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
   // Bookmarklet: collects env metadata from the target page, opens our form pre-filled
-  const bookmarklet = `javascript:(function(){var m={url:location.href,title:document.title,ua:navigator.userAgent,sw:screen.width,sh:screen.height,vw:innerWidth,vh:innerHeight,dpr:window.devicePixelRatio||1,lang:navigator.language||'',tz:(Intl&&Intl.DateTimeFormat)?Intl.DateTimeFormat().resolvedOptions().timeZone:'',cook:navigator.cookieEnabled?1:0,touch:('ontouchstart'in window||navigator.maxTouchPoints>0)?1:0,ts:Date.now()};var p=Object.keys(m).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(m[k])}).join('&');window.open('${appUrl}/report/new?'+p,'_blank','width=820,height=750,scrollbars=yes');})();`;
+  const bookmarklet = `javascript:(function(){var bv='';try{var bm=document.querySelector('meta[name="build-version"]');if(bm&&bm.content){bv=bm.content}else if(window.__BUILD__){bv=String(window.__BUILD__)}else if(window.__COMMIT_SHA__){bv=String(window.__COMMIT_SHA__)}}catch(e){}var conn=navigator.connection||{};var m={url:location.href,title:document.title,ua:navigator.userAgent,sw:screen.width,sh:screen.height,vw:innerWidth,vh:innerHeight,dpr:window.devicePixelRatio||1,lang:navigator.language||'',tz:(Intl&&Intl.DateTimeFormat)?Intl.DateTimeFormat().resolvedOptions().timeZone:'',cook:navigator.cookieEnabled?1:0,touch:('ontouchstart'in window||navigator.maxTouchPoints>0)?1:0,ts:Date.now(),build:bv,hc:navigator.hardwareConcurrency||'',dm:navigator.deviceMemory||'',ct:conn.effectiveType||'',cd:conn.downlink||''};var p=Object.keys(m).map(function(k){return encodeURIComponent(k)+'='+encodeURIComponent(m[k])}).join('&');window.open('${appUrl}/report/new?'+p,'_blank','width=820,height=750,scrollbars=yes');})();`;
 
   return (
     <div className="min-h-screen bg-white">
@@ -110,6 +110,9 @@ export default async function Home() {
                 { icon: '📱', label: 'Device type', desc: 'desktop, mobile, or tablet' },
                 { icon: '🌍', label: 'Language & timezone', desc: 'for locale-specific bugs' },
                 { icon: '📸', label: 'Screenshot', desc: 'paste or drag & drop your own' },
+                { icon: '🐞', label: 'Console errors & JS exceptions', desc: 'via the browser extension' },
+                { icon: '🏷️', label: 'Build version', desc: 'know exactly which deploy the bug is in' },
+                { icon: '🎬', label: 'Session replay', desc: 'opt-in recording of what happened, with inputs redacted' },
               ].map((item) => (
                 <li key={item.label} className="flex items-start gap-3">
                   <span className="text-lg mt-0.5">{item.icon}</span>

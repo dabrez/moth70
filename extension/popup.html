@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h2>Report Bug</h2>
+      <button id="close-btn" class="icon-btn">&times;</button>
+    </header>
+    
+    <div id="screenshot-preview-container">
+      <img id="screenshot-preview" src="" alt="Screenshot preview" />
+      <div id="screenshot-loading">Capturing screen...</div>
+    </div>
+
+    <p id="diagnostics-note" class="diagnostics-note">Checking for console/network errors…</p>
+
+    <div class="recording-controls">
+      <span id="recording-status" class="recording-status">Session recording off</span>
+      <button type="button" id="recording-toggle">Start Recording</button>
+    </div>
+
+    <form id="bug-form">
+      <div class="form-group">
+        <label for="title">Title *</label>
+        <input type="text" id="title" required placeholder="What went wrong?" />
+      </div>
+
+      <div class="form-group">
+        <label for="description">Description *</label>
+        <textarea id="description" required placeholder="Provide details on how to reproduce the issue..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="severity">Severity</label>
+        <select id="severity">
+          <option value="low">Low</option>
+          <option value="medium" selected>Medium</option>
+          <option value="high">High</option>
+          <option value="critical">Critical</option>
+        </select>
+      </div>
+
+      <button type="submit" id="submit-btn">Submit Report</button>
+    </form>
+    
+    <div id="success-message" class="hidden">
+      <div class="check-icon">✓</div>
+      <h3>Report Submitted</h3>
+      <p>Thank you for your feedback!</p>
+    </div>
+  </div>
+  <script src="popup.js"></script>
+</body>
+</html>
