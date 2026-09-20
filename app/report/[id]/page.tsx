@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import { SEVERITY_CONFIG, STATUS_CONFIG, formatDate, formatRelativeDate, getDomain } from '@/lib/utils';
 import { CopyLinkButton } from './CopyLinkButton';
+import { CopyForAgentButton } from './CopyForAgentButton';
 import { StatusUpdater } from './StatusUpdater';
 import { SessionReplayPlayer } from './SessionReplayPlayer';
 
@@ -50,6 +51,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
             <span className="text-xl">🐛</span><span>BugShot</span>
           </Link>
           <div className="flex items-center gap-3">
+            <CopyForAgentButton reportId={report.id} />
             <CopyLinkButton reportId={report.id} />
             <Link href="/report/new" className="text-sm bg-rose-500 text-white px-3 py-1.5 rounded-lg hover:bg-rose-600 transition-colors font-medium">New Report</Link>
           </div>

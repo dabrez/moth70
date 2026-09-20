@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { renderAgentMarkdown } from '@/lib/agentExport';
 
 const CORS_HEADERS = {
   'Access-Control-Allow-Origin': '*',
@@ -12,7 +13,7 @@ export async function OPTIONS() {
 }
 
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
@@ -20,6 +21,21 @@ export async function GET(
   if (!report) {
     return NextResponse.json({ error: 'Report not found' }, { status: 404, headers: CORS_HEADERS });
   }
+
+  // `?format=md` returns the agent-ready handoff document instead of raw JSON.
+  const format = new URL(request.url).searchParams.get('format');
+  if (format === 'md' || format === 'markdown') {
+    const markdown = await renderAgentMarkdown(report, {
+      appUrl: process.env.NEXT_PUBLIC_APP_URL,
+    });
+    return new NextResponse(markdown, {
+      headers: {
+        ...CORS_HEADERS,
+        'Content-Type': 'text/markdown; charset=utf-8',
+      },
+    });
+  }
+
   return NextResponse.json(report, { headers: CORS_HEADERS });
 }
 

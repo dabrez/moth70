@@ -9,6 +9,13 @@
   --radius: 8px;
 }
 
+/* Pinned on the root, not just body: when the popup's content is taller than Chrome will
+   allow, its auto-resize retries at the maximum width (800px) and the bubble balloons
+   around a 320px column. A fixed root width keeps it at 320px plus a scrollbar instead. */
+html {
+  width: 320px;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -211,4 +218,104 @@ button[type="submit"]:disabled {
   margin: 0;
   font-size: 13px;
   color: var(--text-muted);
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* Same column rhythm as .container: these children used to sit directly in it, and the
+   diagnostics note's negative margin relies on this gap to land below the screenshot. */
+#main-view {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.settings-panel {
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.settings-panel .form-group:last-of-type {
+  margin-bottom: 0;
+}
+
+.field-hint {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.settings-status {
+  margin: 10px 0 0;
+  font-size: 11px;
+  min-height: 14px;
+  color: var(--text-muted);
+}
+
+.settings-status.ok { color: #34d399; }
+.settings-status.error { color: #f87171; }
+
+.settings-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.settings-actions button {
+  flex: 1;
+  border-radius: var(--radius);
+  padding: 8px;
+  font-size: 12px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+}
+
+.settings-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+#test-connection-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+#test-connection-btn:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+#save-settings-btn {
+  background: var(--primary);
+  border: 1px solid var(--primary);
+  color: #fff;
+  font-weight: 500;
+}
+
+#save-settings-btn:hover:not(:disabled) {
+  background: var(--primary-hover);
+}
+
+.view-report-link {
+  color: var(--primary);
+  font-size: 13px;
+  text-decoration: none;
+  margin-top: 4px;
+}
+
+.view-report-link:hover {
+  text-decoration: underline;
+}
+
+.diagnostics-note.submit-error {
+  color: #f87171;
 }

@@ -1,13 +1,11 @@
-// Isolated-world content script. Injects inject.js into the page's own JS world (needed
-// so console.error/warn patching actually sees the page's own calls), then relays
-// messages between the popup/background (chrome.runtime) and inject.js (window.postMessage).
-
-(function injectPageScript() {
-  const script = document.createElement('script');
-  script.src = chrome.runtime.getURL('inject.js');
-  script.onload = () => script.remove();
-  (document.documentElement || document.head || document.body).appendChild(script);
-})();
+// Isolated-world content script. Relays messages between the popup/background
+// (chrome.runtime) and inject.js (window.postMessage).
+//
+// inject.js is declared in the manifest as a MAIN-world content script rather than being
+// injected here via a <script> tag: a script tag loads asynchronously, so anything the page
+// logged during its initial parse raced ahead of the console patch and was lost, and
+// strict page CSPs blocked the tag outright. A MAIN-world content script runs synchronously
+// at document_start and is exempt from page CSP.
 
 let nextRequestId = 1;
 const pending = new Map();
@@ -28,7 +26,7 @@ function askInjectedScript(type, extra) {
     const requestId = nextRequestId++;
     pending.set(requestId, resolve);
     window.postMessage({ source: 'bugshot-content', type, requestId, ...extra }, '*');
-    // Don't hang forever if inject.js never loaded (e.g. strict page CSP blocked it).
+    // Don't hang forever on pages where content scripts cannot run at all.
     setTimeout(() => {
       if (pending.has(requestId)) {
         pending.delete(requestId);

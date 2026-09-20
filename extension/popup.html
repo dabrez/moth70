@@ -8,8 +8,37 @@
   <div class="container">
     <header>
       <h2>Report Bug</h2>
-      <button id="close-btn" class="icon-btn">&times;</button>
+      <div class="header-actions">
+        <button id="settings-btn" class="icon-btn" title="Settings">&#9881;</button>
+        <button id="close-btn" class="icon-btn" title="Close">&times;</button>
+      </div>
     </header>
+
+    <!-- Settings panel. Shown on demand, and automatically on first run when no
+         server URL has been configured yet. -->
+    <section id="settings-panel" class="settings-panel hidden">
+      <div class="form-group">
+        <label for="server-url">Moth70 server URL *</label>
+        <input type="url" id="server-url" placeholder="http://localhost:3000" />
+        <p class="field-hint">Where reports are submitted. No trailing slash needed.</p>
+      </div>
+      <div class="form-group">
+        <label for="reporter-name">Your name</label>
+        <input type="text" id="reporter-name" placeholder="Optional" />
+      </div>
+      <div class="form-group">
+        <label for="reporter-email">Your email</label>
+        <input type="email" id="reporter-email" placeholder="Optional" />
+      </div>
+      <p id="settings-status" class="settings-status"></p>
+      <div class="settings-actions">
+        <button type="button" id="test-connection-btn">Test connection</button>
+        <button type="button" id="save-settings-btn">Save</button>
+      </div>
+    </section>
+
+    <!-- Everything below is hidden while the settings panel is open. -->
+    <div id="main-view">
     
     <div id="screenshot-preview-container">
       <img id="screenshot-preview" src="" alt="Screenshot preview" />
@@ -18,7 +47,7 @@
 
     <p id="diagnostics-note" class="diagnostics-note">Checking for console/network errors…</p>
 
-    <div class="recording-controls">
+    <div id="recording-controls" class="recording-controls">
       <span id="recording-status" class="recording-status">Session recording off</span>
       <button type="button" id="recording-toggle">Start Recording</button>
     </div>
@@ -51,6 +80,8 @@
       <div class="check-icon">✓</div>
       <h3>Report Submitted</h3>
       <p>Thank you for your feedback!</p>
+      <a id="view-report-link" class="view-report-link hidden" target="_blank" rel="noreferrer">View report &rarr;</a>
+    </div>
     </div>
   </div>
   <script src="popup.js"></script>
